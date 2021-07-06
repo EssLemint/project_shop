@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.board">
+	
+	<resultMap type="memberDto" id="member">
+		<result column="MEMBERS_NO" property="no"/>
+		<result column="MEMBERS_NAME" property="name"/>
+	</resultMap>
+	
+	<resultMap type="ProductDto" id="product">
+		<result column="PRODUCT_NO" property="no"/>
+		<result column="PRODUCT_NAME" property="name"/>
+	</resultMap>
+
+	<resultMap type="boardDto" id="boardResultMap">
+			<id 	column="BOARD_NO" 		property="no"/>
+			<result column="BOARD_TITLE" 	property="title"/>
+			<result column="BOARD_BODY" 	property="body"/>
+			<result column="CRE_DATE" 		property="createDate"
+										javaType="java.util.Date"/>
+			<result column="MOD_DATE" 		property="modifiedDate"
+										javaType="java.util.Date"/>	
+			<result column="BOARD_STATE" 	property="state"/>
+			<result column="MEMBERS_NO" 	property="memberNO"/>
+			<result column="ORDERS_NO" 		property="ordersNO"/>
+			<result column="PRODUCT_NO" 	property="productNO"/>
+	</resultMap>
+
+	<sql id="search">
+		WHERE NAME LIKE '%'||#{keyword}||'%'
+	</sql>
+
+
+	
+	
+	<select id="boardSelectList"
+		parameterType="map" resultMap="boardResultMap">
+		SELECT B_M.BOARD_NO, B_M.BOARD_TITLE, PR.PRODUCT_NAME,
+			B_M.MEMBERS_NAME,TO_CHAR(B_M.BOARD_CRE_DATE,'YY.MM.DD')
+		FROM (SELECT B.BOARD_NO, B.BOARD_TITLE, M.MEMBERS_NAME, B.BOARD_CRE_DATE,
+				B.PRODUCT_NO
+				FROM BOARD B JOIN MEMBERS M
+				ON #{B.memberNO} = member.no
+		WHERE #{state} = 1) B_M JOIN PRODUCT PR
+		ON #{productNO} = product.no
+		ORDER BY BOARD_NO DESC
+		
+		
+	</select>
+
+
+	<select id="boardSelectTotalCount"
+		resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM BOARD
+		<include refid="search"></include>
+	</select>
+
+
+</mapper>

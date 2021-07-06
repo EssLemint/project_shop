@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.util">
+
+	<resultMap type="PlmageDto" id="pImageResultMap">
+		<id 	column="P_IMAGE_NO" 				property="no"/>
+		<result column="P_IMAGE_ORIGINAL_FILE_NAME" property="originalFileName"/>
+		<result column="P_IMAGE_STORED_FILE_NAME" 	property="storedFileName"/>
+		<result column="P_IMAGE_FILE_SIZE" 			property="fileSize"/>
+		<result column="P_IMAGE_CRE_DATE" 			property="createDate"
+									javaType="java.util.Date"/>
+		<result column="P_IMAGE_MOD_DATE" 			property="modifiedDate"
+									javaType="java.util.Date"/>
+		<result	column="PRODUCT_NO" 				property="productNo"/>						
+	</resultMap>
+	
+	<insert id="insertFile" parameterType="map">
+		INSERT INTO P_IMAGE
+		VALUE	(P_IMAGE_NO, PRODUCT_NO, P_IMAGE_ORIGINAL_FILE_NAME,
+		        	P_IMAGE_STORED_FILE_NAME, P_IMAGE_FILE_SIZE, P_IMAGE_CRE_DATE, P_IMAGE_MOD_DATE)
+		VALUES	(SEQ_P_IMAGE_P_IMAGE_NO.NEXTVAL, #{productNo}, #{originalFileName}
+		    		, #{storedFileName}, #{fileSize}, SYSDATE, SYSDATE)
+	</insert>
+	
+	<select id="fileSelectList" parameterType="int"
+		resultType="map">
+		SELECT P_IMAGE_NO, P_IMAGE_ORIGINAL_FILE_NAME, P_IMAGE_STORED_FILE_NAME
+	    	, ROUND(P_IMAGE_FILE_SIZE / 1024, 1) AS FILE_SIZE
+		FROM P_IMAGE
+		WHERE PRODUCT_NO = #{no}
+		ORDER BY P_IMAGE_NO
+	</select>
+	
+	<delete id="fileDelete" parameterType="map">
+		DELETE FROM P_IMAGE
+		WHERE  PRODUCT_NO = #{productNo}
+	</delete>
+	
+	<select id="fileSelectStoredFileName" parameterType="int"
+		resultType="map">
+		SELECT P_IMAGE_NO, P_IMAGE_STORED_FILE_NAME
+		FROM P_IMAGE
+		WHERE PRODUCT_NO = #{no}
+	</select>
+	
+	<update id="fileUpdateOne" parameterType="map">
+		UPDATE TB_FILE
+		SET ORIGINAL_FILE_NAME = #{original_file_name},
+ 			STORED_FILE_NAME = #{stored_file_name},
+  			FILE_SIZE = #{file_size}
+		WHERE IDX = #{idx}
+	</update>
+
+</mapper>

@@ -1,0 +1,45 @@
+@charset "UTF-8";
+
+h1{
+	text-align: center;
+	}
+	h2{
+	text-align: center;
+	}
+	div{
+	text-align: center;
+	}
+	li{
+	list-style: none;
+	}
+	#id{
+	width : 300px;
+	height : 35px;
+	}
+	#email{
+	width : 300px;
+	height : 35px;
+	}
+	#pass{
+	width : 300px;
+	height : 35px;
+	}
+	#passwordchk{
+	width : 300px;
+	height : 35px;
+	}
+	#addressMain{
+	height : 35px;
+	}
+	#addressDetail{
+	width : 300px;
+	height : 35px;
+	}
+	#name{
+	width : 300px;
+	height : 35px;
+	}
+	#phone{
+	width : 300px;
+	height : 35px;
+	}

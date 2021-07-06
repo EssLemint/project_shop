@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.orderrequest">
+
+	<resultMap type="OrderRequestDto" 			id="requestMap">
+		<id column="MEMBERS_NO" 			property="membersNo"/>
+		<result column="ORDERS_NO"				property="ordersNo" />
+		<result column="REQ_NO"					property="reqNo" />
+		<result column="ORDERS_ADDRESS_MAIN"	property="ordersAddressMain" />
+		<result column="ORDERS_ADDRESS_DETAIL"	property="ordersAddressDetail" />
+		<result column="ORDERS_PHONE"			property="ordersPhone" />
+		<result column="ORDERS_REQUEST_NO"		property="no" />
+	</resultMap>
+
+	<insert id="orderAddrequest" parameterType="map">
+		INSERT INTO ORDERREQUEST
+	    VALUE(ORDERS_REQ, ORDERS_BASKET_ONE)
+	    VALUES(#{request}, #{basketnum})
+	</insert>
+	
+	
+	<select id="findOrderRequest" parameterType="map" resultMap="requestMap">
+		SELECT ORDERS_REQ, ORDERS_BASKET_ONE, MEMBERS_NO
+		FROM ORDERREQUEST
+		WHERE ORDERS_BASKET_ONE = #{basketnum}
+		AND MEMBERS_NO = #{membersNo}
+	</select>
+	
+	<insert id="insertOrderOneReq" parameterType="map">
+		INSERT INTO ORDERREQUEST
+		VALUE(MEMBERS_NO, ORDERS_NO, REQ_NO, ORDERS_ADDRESS_MAIN, ORDERS_ADDRESS_DETAIL,
+   					 ORDERS_PHONE, ORDERS_REQUEST_NO)
+		VALUES(#{membersNo}, #{ordersNo}, #{reqNo}, #{ordersAddressMain}, #{ordersAddressDetail},
+                #{ordersPhone},  SEQ_ORDERS_REQUEST_NO.nextval)
+	</insert>
+
+	<select id="selectRecentOrderReq" parameterType="map" resultMap="requestMap">
+		 SELECT * 
+         FROM ORDERREQUEST
+         WHERE MEMBERS_NO = #{membersNo}
+         AND ORDERS_NO = #{ordersNo}
+	</select>
+	
+	<select id="selectOrdersRequest" parameterType="int" resultMap="requestMap">
+            SELECT ORDQ.MEMBERS_NO, ORDQ.ORDERS_NO, 
+                ORDQ.ORDERS_ADDRESS_MAIN, ORDQ.ORDERS_ADDRESS_DETAIL,ORDQ.ORDERS_PHONE
+                ,REQDETAIL.REQ_DETAIL
+        	FROM ORDERREQUEST ORDQ JOIN REQUEST_DETAIL REQDETAIL 
+       		ON ORDQ.REQ_NO = REQDETAIL.REQ_NO WHERE ORDERS_NO =  #{ordersNo}
+           
+	</select>
+	
+	<select id="selectOneRequest" parameterType="int" resultType="map">
+	
+	SELECT * 
+	FROM(
+	    SELECT ORQ.MEMBERS_NO, ORQ.ORDERS_NO, ORQ.ORDERS_PHONE
+	            , ORQ.ORDERS_ADDRESS_MAIN, ORQ.ORDERS_ADDRESS_DETAIL, REQD.REQ_DETAIL, ROWNUM RNUM
+	    FROM ORDERREQUEST ORQ JOIN REQUEST_DETAIL REQD
+	    ON ORQ.REQ_NO = REQD.REQ_NO
+	    WHERE ORDERS_NO = #{ordersNo})
+    WHERE RNUM = 1
+		
+	</select>
+	
+	
+	
+	
+
+</mapper>

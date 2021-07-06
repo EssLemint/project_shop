@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.point">
+
+	<resultMap type="memberDto" id="memberResultMap">
+		<id 	column="MEMBERS_NO" 				property="no"/>
+		<result column="MEMBERS_ID" 			property="id"/>
+		<result column="MEMBERS_PASS" 			property="pass"/>
+		<result column="MEMBERS_NAME" 			property="name"/>
+		<result column="MEMBERS_EMAIL" 			property="email"/>
+		<result column="MEMBERS_PHONE" 			property="phone"/>
+		<result column="MEMBERS_ADDRESS_MAIN" 			property="addressMain"/>
+		<result column="MEMBERS_ADDRESS_DETAIL" 			property="addressDetail"/>		
+		<result column="MEMBERS_POINT" 			property="point"/>		
+		<result column="MEMBERS_CRE_DATE" 			property="createDate"
+									javaType="java.util.Date"/>
+		<result column="MEMBERS_MOD_DATE" 			property="modifiedDate"
+									javaType="java.util.Date"/>
+		<result column="MEMBER_IS_ADMIN"			property="isAdmin"/>
+		<result column="MEMBERS_STATE"			property="state"/>
+			
+	</resultMap>
+	
+	<resultMap type="pointDto" id="pointResultMap">
+		<id 	column="MEMBERS_NO" 				property="no"/>
+		<result	column="M_POINT_NO" 				property="pno" 	/>
+		<result column="M_POINT_CHANGE" 			property="point" />
+		<result column="M_POINT_CRE_DATE" 			property="createDate" 
+												javaType="java.util.Date"/>
+		<result column="M_POINT_MOD_DATE" 			property="modifiedDate" 
+												javaType="java.util.Date"/>
+		<result column="M_POINT_ROUTE" 				property="route"/>
+			
+	</resultMap>
+	
+		<insert id="pointinsert" parameterType="pointDto">
+		<selectKey keyProperty="pno" resultType="int" order="BEFORE">
+			SELECT SEQ_M_POINT_M_POINT_NO.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO M_POINT
+			VALUE
+			(
+			M_POINT_NO , MEMBERS_NO , M_POINT_CHANGE , M_POINT_CRE_DATE, M_POINT_MOD_DATE, M_POINT_ROUTE
+			)
+			VALUES
+			(
+			#{pno}, #{no}, #{point}, SYSDATE, SYSDATE, #{route}
+			)
+		</insert>
+	
+		<insert id="orderpointinsert" parameterType="pointDto">
+		<selectKey keyProperty="pno" resultType="int" order="BEFORE">
+			SELECT SEQ_M_POINT_M_POINT_NO.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO M_POINT
+			VALUE
+			(
+			M_POINT_NO , MEMBERS_NO , M_POINT_CHANGE , M_POINT_CRE_DATE, M_POINT_MOD_DATE, M_POINT_ROUTE
+			)
+			VALUES
+			(
+			#{pno}, #{no}, #{point}, SYSDATE, SYSDATE, #{route}
+			)
+		</insert>
+		
+		<select id="pointHistory" parameterType="map" resultMap="pointResultMap">
+		SELECT M_POINT_NO,MEMBERS_NO, M_POINT_CHANGE, M_POINT_MOD_DATE, M_POINT_ROUTE
+    		FROM (
+     			   SELECT ROWNUM RNUM, P.M_POINT_NO, P.MEMBERS_NO, P.M_POINT_CHANGE, P.M_POINT_MOD_DATE, P.M_POINT_ROUTE 
+      	    FROM (
+   			       SELECT M_POINT_NO, MEMBERS_NO, M_POINT_CHANGE, M_POINT_MOD_DATE, M_POINT_ROUTE
+     				FROM M_POINT
+     				WHERE MEMBERS_NO = #{no}
+         		   ORDER BY M_POINT_NO DESC)P
+ 				  )
+    		WHERE RNUM BETWEEN #{start} AND #{end}
+		</select>
+		
+		<select id="pointSelectList" 
+						resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM M_POINT
+		WHERE MEMBERS_NO = #{no}
+		</select>
+		
+		<select id="adminMemberPoint" parameterType="map" resultMap="pointResultMap">
+		SELECT M_POINT_NO,MEMBERS_NO, M_POINT_CHANGE, M_POINT_MOD_DATE, M_POINT_ROUTE
+    		FROM (
+     			   SELECT ROWNUM RNUM, P.M_POINT_NO, P.MEMBERS_NO, P.M_POINT_CHANGE, P.M_POINT_MOD_DATE, P.M_POINT_ROUTE 
+      	    FROM (
+   			       SELECT M_POINT_NO, MEMBERS_NO, M_POINT_CHANGE, M_POINT_MOD_DATE, M_POINT_ROUTE
+     				FROM M_POINT
+     				WHERE MEMBERS_NO = #{no}
+         		   ORDER BY M_POINT_NO DESC)P
+ 				  )
+    		WHERE RNUM BETWEEN #{start} AND #{end}
+		</select>
+		
+		<select id="adminMemberPointList" 
+						resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM M_POINT
+		WHERE MEMBERS_NO = #{no}
+		</select>
+		
+
+
+</mapper>

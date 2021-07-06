@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.member">
+
+	<sql id="search">
+		<choose>
+			<when test="searchOption == 'all'">
+				WHERE 	MNAME LIKE '%'||#{keyword}||'%'
+                OR 		EMAIL LIKE '%'||#{keyword}||'%' 
+			</when>
+			<otherwise>
+				WHERE 	${searchOption} LIKE '%'||#{keyword}||'%'
+			</otherwise>
+		</choose>
+	</sql>
+
+	<resultMap type="memberDto" id="memberResultMap">
+		<id 	column="MEMBERS_NO" 				property="no"/>
+		<result column="MEMBERS_ID" 			property="id"/>
+		<result column="MEMBERS_PASS" 			property="pass"/>
+		<result column="MEMBERS_NAME" 			property="name"/>
+		<result column="MEMBERS_EMAIL" 			property="email"/>
+		<result column="MEMBERS_PHONE" 			property="phone"/>
+		<result column="MEMBERS_ADDRESS_MAIN" 			property="addressMain"/>
+		<result column="MEMBERS_ADDRESS_DETAIL" 			property="addressDetail"/>		
+		<result column="MEMBERS_POINT" 			property="point"/>		
+		<result column="MEMBERS_CRE_DATE" 			property="createDate"
+									javaType="java.util.Date"/>
+		<result column="MEMBERS_MOD_DATE" 			property="modifiedDate"
+									javaType="java.util.Date"/>
+		<result column="MEMBER_IS_ADMIN"			property="isAdmin"/>
+		<result column="MEMBERS_STATE"			property="state"/>
+			
+	</resultMap>
+
+<!-- 회원목록조회 -->
+	<select id="memberSelectList" parameterType="map" resultMap="memberResultMap">
+	
+	SELECT MEMBERS_NO, MEMBERS_NAME, MEMBERS_PHONE, MEMBERS_POINT, MEMBERS_MOD_DATE, MEMBER_IS_ADMIN
+    FROM (
+        SELECT ROWNUM RNUM, M.MEMBERS_NO, M.MEMBERS_NAME, M.MEMBERS_PHONE, M.MEMBERS_POINT, 
+        M.MEMBERS_MOD_DATE, M.MEMBER_IS_ADMIN
+        FROM (
+        SELECT MEMBERS_NO, MEMBERS_NAME, MEMBERS_PHONE, MEMBERS_POINT, MEMBERS_MOD_DATE, MEMBER_IS_ADMIN
+        FROM MEMBERS
+        WHERE MEMBER_IS_ADMIN = 2
+        ORDER BY MEMBERS_MOD_DATE DESC) M
+    )
+    WHERE RNUM BETWEEN #{start} AND #{end}
+	
+	</select>
+	
+	
+	
+	
+<!-- 회원존재확인 -->
+	<select id="memberExist" parameterType="map" resultMap="memberResultMap">
+		SELECT MEMBERS_NO, MEMBERS_ID, MEMBERS_PASS, MEMBER_IS_ADMIN
+		FROM MEMBERS
+		WHERE MEMBERS_ID = #{id} AND MEMBERS_PASS = #{pass}	
+	</select>
+	
+<!-- 	회원추가 -->
+	<insert id="memberInsertOne" parameterType="com.edu.member.model.MemberDto"
+		useGeneratedKeys="true" keyProperty="no">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			SELECT SEQ_MEMBERS_MEMBERS_NO.NEXTVAL FROM DUAL
+		</selectKey>
+	INSERT INTO MEMBERS
+	VALUE(MEMBERS_ID, MEMBERS_NO, MEMBERS_PASS, MEMBERS_NAME, MEMBERS_EMAIL, 
+		MEMBERS_ADDRESS_MAIN, MEMBERS_ADDRESS_DETAIL, MEMBERS_POINT, 
+		MEMBERS_PHONE,MEMBERS_CRE_DATE, MEMBERS_MOD_DATE , MEMBER_IS_ADMIN, MEMBERS_STATE)
+		
+	VALUES(#{id}, #{no}, #{pass}, #{name}, #{email}, #{addressMain}
+		, #{addressDetail}, #{point}, #{phone}, SYSDATE, SYSDATE, #{isAdmin}, #{state})		
+	</insert>
+<!-- 	아이디 찾기 -->
+	<select id="memberIdExist" parameterType="map" resultMap="memberResultMap">
+		SELECT MEMBERS_ID
+			FROM MEMBERS
+			WHERE MEMBERS_EMAIL = #{email} AND MEMBERS_PHONE = #{phone} 
+	</select>
+<!-- 	패스워드 찾기 -->
+	<select id="memberPwdExist" parameterType="map" resultMap="memberResultMap">
+		SELECT MEMBERS_PASS
+			FROM MEMBERS
+			WHERE MEMBERS_ID = #{id} AND MEMBERS_EMAIL = #{email}
+			AND MEMBERS_PHONE = #{phone}
+	</select>
+<!-- 	회원상세조회 -->
+	<select id="memberSelectOne" parameterType="int" resultMap="memberResultMap">
+		SELECT  MEMBERS_NO, MEMBERS_ID,MEMBERS_PASS,MEMBERS_NAME, MEMBERS_PHONE, MEMBERS_POINT, MEMBERS_EMAIL, MEMBERS_ADDRESS_MAIN
+		FROM MEMBERS
+		WHERE MEMBERS_NO = #{no}
+	</select>
+	
+<!-- 회원정보 수정 -->
+	<update id="memberUpdateCtr" parameterType="memberDto">
+		UPDATE MEMBERS
+		<set>
+			<if test="name != ''">MEMBERS_NAME = #{name},</if>
+			<if test="phone != ''">MEMBERS_PHONE = #{phone},</if> 
+			<if test="email != ''">MEMBERS_EMAIL = #{email},</if> 
+			<if test="addressMain != ''">MEMBERS_ADDRESS_MAIN = #{addressMain},</if> 
+			<if test="point != ''">MEMBERS_POINT = #{point},</if> 
+			MEMBERS_MOD_DATE = SYSDATE
+		</set>
+		WHERE MEMBERS_NO = #{no}
+	</update>
+	
+<!-- 	회원삭제 -->
+	<delete id="memberDeleteOne" parameterType="int">
+		DELETE FROM MEMBERS
+		WHERE MNO = #{value}
+	</delete>
+	
+	<select id="memberSelectTotalCount" 
+		resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM MEMBERS
+		<include refid="search"></include>
+	</select>
+	
+	<select id="memberMyPage" parameterType="int" resultMap="memberResultMap">
+		SELECT MEMBERS_NO, MEMBERS_ID, MEMBERS_PHONE,MEMBERS_PASS
+			,MEMBERS_NAME,MEMBERS_EMAIL,MEMBERS_POINT,MEMBERS_ADDRESS_MAIN,MEMBERS_ADDRESS_DETAIL
+			FROM MEMBERS
+			WHERE MEMBERS_NO = #{no}
+	</select>
+	
+<!-- 	회원 자기 자신 수정 -->
+	<select id="uMemberView" parameterType="int" resultMap="memberResultMap">
+		SELECT MEMBERS_NO, MEMBERS_ID, MEMBERS_PHONE,MEMBERS_PASS
+			,MEMBERS_NAME,MEMBERS_EMAIL,MEMBERS_POINT,MEMBERS_ADDRESS_MAIN,MEMBERS_ADDRESS_DETAIL
+			FROM MEMBERS
+			WHERE MEMBERS_NO = #{no}
+	</select>
+	
+	<select id="uUpdate" parameterType="int" resultMap="memberResultMap">
+		SELECT MEMBERS_NO, MEMBERS_ID, MEMBERS_PHONE,MEMBERS_PASS
+			,MEMBERS_NAME,MEMBERS_EMAIL,MEMBERS_POINT,MEMBERS_ADDRESS_MAIN,MEMBERS_ADDRESS_DETAIL
+			FROM MEMBERS
+			WHERE MEMBERS_NO = #{no}
+	</select>
+	
+	<update id="uMemberUpdateCtr" parameterType="memberDto">
+		UPDATE MEMBERS
+		<set>
+			<if test="no != ''">MEMBERS_NO = #{no},</if>
+			<if test="id != ''">MEMBERS_ID = #{id},</if>
+			<if test="name != ''">MEMBERS_NAME = #{name},</if>
+			<if test="pass != ''">MEMBERS_PASS = #{pass},</if>
+			<if test="phone != ''">MEMBERS_PHONE = #{phone},</if> 
+			<if test="email != ''">MEMBERS_EMAIL = #{email},</if> 
+			<if test="addressMain != ''">MEMBERS_ADDRESS_MAIN = #{addressMain},</if> 
+			<if test="addressDetail != ''">MEMBERS_ADDRESS_DETAIL = #{addressDetail},</if> 
+			MEMBERS_MOD_DATE = SYSDATE
+		</set>
+		WHERE MEMBERS_NO = #{no}
+	</update>
+	
+	<select id="memberPoint" parameterType="int" resultMap="memberResultMap">
+		SELECT MEMBERS_NO, MEMBERS_POINT
+			FROM MEMBERS
+			WHERE MEMBERS_NO = #{no}
+	</select>
+	
+	<update id="memberPointUpdate" parameterType="int">
+		UPDATE MEMBERS
+			SET MEMBERS_POINT = MEMBERS_POINT + #{point}
+			WHERE MEMBERS_NO = #{no}
+	</update>
+	
+	<select id="newMemberIdChk" parameterType="memberDto" resultMap="memberResultMap">
+		SELECT MEMBERS_ID
+			FROM MEMBERS
+			WHERE MEMBERS_ID = #{id}
+	</select>
+
+	<select id="memberMyPageChk" parameterType="int" resultMap="memberResultMap">
+		SELECT MEMBERS_NO, MEMBERS_ID, MEMBERS_PHONE,MEMBERS_PASS
+			,MEMBERS_NAME,MEMBERS_EMAIL,MEMBERS_POINT,MEMBERS_ADDRESS_MAIN,MEMBERS_ADDRESS_DETAIL
+			FROM MEMBERS
+			WHERE MEMBERS_NO = #{no}
+	</select>
+<!-- 	<insert id="insertFile" parameterType="map"> -->
+<!-- 		INSERT INTO TB_FILE -->
+<!-- 		VALUE	(IDX, PARENT_SEQ, ORIGINAL_FILE_NAME, -->
+<!-- 		        	STORED_FILE_NAME, FILE_SIZE, CRE_DATE) -->
+<!-- 		VALUES	(TB_FILE_IDX_SEQ.NEXTVAL, #{parentSeq}, #{original_file_name} -->
+<!-- 		    		, #{stored_file_name}, #{file_size}, SYSDATE) -->
+<!-- 	</insert> -->
+	
+	
+<!-- 	<select id="fileSelectList" parameterType="int" -->
+<!-- 		resultType="map"> -->
+<!-- 		SELECT IDX, ORIGINAL_FILE_NAME, STORED_FILE_NAME -->
+<!-- 	    	, ROUND(FILE_SIZE / 1024, 1) AS FILE_SIZE -->
+<!-- 		FROM TB_FILE -->
+<!-- 		WHERE PARENT_SEQ = #{no} -->
+<!-- 	</select> -->
+	
+	
+<!-- 	<delete id="fileDelete" parameterType="int"> -->
+<!-- 		DELETE FROM TB_FILE -->
+<!-- 		WHERE PARENT_SEQ = #{no} -->
+<!-- 	</delete> -->
+	
+	
+	
+<!-- 	<select id="fileSelectStoredFileName" parameterType="int" -->
+<!-- 		resultType="map"> -->
+<!-- 		SELECT IDX, STORED_FILE_NAME -->
+<!-- 		FROM TB_FILE -->
+<!-- 		WHERE PARENT_SEQ = #{no} -->
+<!-- 	</select> -->
+	
+</mapper>

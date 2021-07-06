@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.product">
+
+
+	<resultMap type="PlmageDto" id="pImageMap">
+		<result column="PRODUCT_NO" property="no"/>
+		<result column="P_IMAGE_STORED_FILE_NAME"	property="storedFileName" />
+	</resultMap>
+
+	<resultMap type="productDto" id="productResultMap">
+		<id column="PRODUCT_NO" property="no" />
+		<result column="PRODUCT_ID" property="id" />
+		<result column="PRODUCT_NAME" property="name" />
+		<result column="PRODUCT_PRICE" property="price" />
+		<result column="PRODUCT_STOCK" property="stock" />
+		<result column="PRODUCT_DETAIL" property="detail" />
+		<result column="PRODUCT_SALES_RATE" property="salesRate" />
+		<result column="PRODUCT_CRE_DATE" property="createDate"
+			javaType="java.util.Date" />
+		<result column="PRODUCT_MOD_DATE" property="modifiedDate"
+			javaType="java.util.Date" />
+		<result column="PRODUCT_STATE" property="state" />
+		<result column="P_IMAGE_STORED_FILE_NAME" property="storedFileName" />
+	</resultMap>
+
+	<sql id="search">
+			AND ${searchOption} LIKE '%'||#{keyword}||'%'
+	</sql>
+
+	<select id="productSelectList" parameterType="map"
+		resultMap="productResultMap">
+		SELECT P.PRODUCT_NAME, P.PRODUCT_PRICE, F.P_IMAGE_STORED_FILE_NAME, 
+				P.PRODUCT_NO, P.PRODUCT_MOD_DATE, P.PRODUCT_STOCK
+		    FROM PRODUCT P JOIN (
+		        SELECT ROWNUM RNUM, PRODUCT_NO, P_IMAGE_STORED_FILE_NAME
+		        FROM(
+		            SELECT P_IMAGE_NO, PRODUCT_NO, P_IMAGE_STORED_FILE_NAME,
+		            RANK() OVER (PARTITION BY PRODUCT_NO ORDER BY P_IMAGE_NO) AS RANK
+		            FROM P_IMAGE
+		            ORDER BY P_IMAGE_CRE_DATE DESC)  
+		        WHERE RANK = 1) F
+		    ON P.PRODUCT_NO = F.PRODUCT_NO
+		WHERE P.PRODUCT_STATE = 1
+		<include refid="search"></include>
+		AND F.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="productImgList" resultMap="pImageMap">
+		SELECT PIMAGE.NO, PIMAGE.STOREDFILENAME
+		FROM PIMAGE
+		WHERE PIMAGE.NO = PRODUCT_NO
+	</select>
+	
+	<insert id="productInsertOne" parameterType="productDto">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			SELECT SEQ_PRODUCT_PRODUCT_NO.NEXTVAL FROM DUAL
+		</selectKey>
+
+		INSERT INTO PRODUCT
+		VALUE(PRODUCT_NO, PRODUCT_ID, PRODUCT_NAME, PRODUCT_PRICE,PRODUCT_STOCK,PRODUCT_DETAIL,
+		PRODUCT_SALES_RATE,PRODUCT_CRE_DATE, PRODUCT_MOD_DATE, PRODUCT_STATE)
+		VALUES(#{no}, #{id} , #{name} , #{price}, #{stock}, 
+		            #{detail}, #{salesRate}, SYSDATE , SYSDATE, #{state})
+	
+	</insert>
+	
+	<select id="productSelectOne" parameterType="int" resultMap="productResultMap">
+		SELECT PRODUCT_NAME, PRODUCT_DETAIL, PRODUCT_STOCK, PRODUCT_PRICE, PRODUCT_NO,PRODUCT_CRE_DATE
+		FROM PRODUCT
+		WHERE PRODUCT_NO = #{no}
+	</select>
+
+	
+	<update id="productUpdateOne" parameterType="productDto">
+		UPDATE PRODUCT
+		<set>
+			<if test="name != ''">PRODUCT_NAME = #{name},</if>
+			<if test="stock != ''">PRODUCT_STOCK = #{stock},</if> 
+			<if test="price != ''">PRODUCT_PRICE = #{price},</if> 
+			<if test="detail != ''">PRODUCT_DETAIL = #{detail},</if>
+			PRODUCT_MOD_DATE = SYSDATE
+		</set>
+		WHERE PRODUCT_NO = #{no}
+		AND PRODUCT_STATE = 1
+	</update>
+	
+	<update id="productDeleteOne" parameterType="int">
+		UPDATE PRODUCT
+		SET PRODUCT_STATE = 2
+		WHERE PRODUCT_NO = #{no}
+	</update>
+	
+	<select id="productSelectTotalCount" resultType="java.lang.Integer">
+		 SELECT COUNT(*)
+                FROM(
+                SELECT P.PRODUCT_NO, PI.P_IMAGE_STORED_FILE_NAME,P.PRODUCT_NAME
+		        FROM PRODUCT P JOIN (SELECT P_IMAGE_NO, PRODUCT_NO, P_IMAGE_STORED_FILE_NAME,
+		            RANK() OVER (PARTITION BY PRODUCT_NO ORDER BY P_IMAGE_NO) AS RANK
+		            FROM P_IMAGE
+                    ORDER BY P_IMAGE_CRE_DATE) PI
+                ON P.PRODUCT_NO = PI.PRODUCT_NO)
+			WHERE ${searchOption} LIKE '%'||#{keyword}||'%'
+	</select>
+</mapper>
+
+<!-- 	parameterType="map" -->

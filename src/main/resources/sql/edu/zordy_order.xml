@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.orders">
+
+	<resultMap type="ProductDto" id="productMap">
+		<result column="PRODUCT_NO" property="no"/>
+		<result column="PRODUCT_NAME"	property="name" />
+		<result column="PRODUCT_PRICE"	property="price" />
+		<result column="PRODUCT_STOCK"	property="stock" />
+		<result column="PRODUCT_SALES_RATE"	property="salesRate" />
+	</resultMap>
+
+	<resultMap type="MemberDto" id="memberMap">
+		<result column="MEMBERS_NO" property="no"/>
+		<result column="MEMBERS_ID" 			property="id"/>
+		<result column="MEMBERS_NAME" property="name"/>
+		<result column="MEMBERS_ADDRESS_MAIN"	property="addressMain" />
+		<result column="MEMBERS_ADDRESS_DETAIL"	property="addressDetail" />
+		<result column="MEMBERS_POINT"	property="point" />
+		<result column="MEMBERS_PHONE"	property="phone" />
+	</resultMap>
+
+	<resultMap type="OrdersDto" id="ordersResultMap">
+		<id column="ORDERS_NO" property="no" />
+		<result column="ORDERS_DATE" property="date"
+									javaType="java.util.Date" />
+		<result column="ORDERS_TOTAL_PRICE" property="totalPrice" />
+		<result column="MEMBERS_NO" property="membersNo" />
+		<result column="PRODUCT_NO" property="productNo" />
+		<result column="PRODUCT_COUNT" property="productCount" />
+		<result column="ORDER_STATE" property="orderState" />
+		<result column="ORDERS_GROUP" property="orderGroup" />
+	</resultMap>
+	
+	<select id="selectOneProduct" parameterType="int" resultMap="productMap">
+		SELECT PRODUCT_NO, PRODUCT_NAME, PRODUCT_PRICE, PRODUCT_STOCK
+		FROM PRODUCT
+		WHERE PRODUCT_NO = #{no}
+	</select>
+	
+	
+	<select id="selectOneMember" parameterType="int" resultMap="memberMap">
+		SELECT MEMBERS_NO, MEMBERS_ADDRESS_MAIN, MEMBERS_ADDRESS_DETAIL
+				, MEMBERS_POINT,MEMBERS_PHONE, MEMBERS_NAME
+        FROM MEMBERS
+        WHERE MEMBERS_NO = #{no}
+	</select>
+	
+	
+	<insert id="orderInsertOne" parameterType="map">
+		INSERT INTO ORDERS
+		VALUE(ORDERS_NO, ORDERS_DATE, ORDERS_TOTAL_PRICE, MEMBERS_NO,
+				PRODUCT_NO, PRODUCT_COUNT, ORDER_STATE, ORDERS_GROUP)
+		VALUES(SEQ_ORDERS_ORDERS_NO.NEXTVAL, SYSDATE , #{totalPrice}, #{membersNo},
+				 #{productNo}, #{productCount}, #{orderState} , SEQ_ORDERS_ORDERS_GROUP.nextval)
+	</insert>
+	
+	
+	<select id="selectRecentOrder" parameterType="int" resultMap="ordersResultMap">
+		SELECT FIN.ORDERS_NO, FIN.ORDERS_GROUP
+		FROM(
+		        SELECT F.ORDERS_DATE, F.ORDERS_NO, F.ORDERS_GROUP,ROWNUM
+		        FROM (
+		                SELECT ORDERS_DATE, ORDERS_NO, ORDERS_GROUP,
+		                    RANK() OVER (PARTITION BY ORDERS_DATE ORDER BY ORDERS_NO) AS RANKNUM
+		                FROM ORDERS
+		                WHERE MEMBERS_NO = #{memNo}
+		                ORDER BY ORDERS_DATE DESC, ORDERS_NO DESC) F
+		        WHERE F.RANKNUM = 1
+		        ORDER BY F.ORDERS_DATE DESC) FIN
+		WHERE ROWNUM = 1
+	</select>
+	
+	<select id="selectOrderOne" parameterType="int" resultMap="ordersResultMap">
+		SELECT * FROM ORDERS
+		WHERE ORDERS_NO = #{no}
+	</select>
+	
+	
+<!-- 	<insert id="insertOrderDetail" parameterType ="orderDetailDto"> -->
+<!-- 		INSERT INTO ORDERS_DETAIL -->
+<!-- 		VALUE(ORDERS_NO,PRODUCT_NO,PRODUCT_COUNT,ORDERS_STATE) -->
+<!-- 		VALUES(#{ordersNo},#{productNo},#{productCount},#{ordersState}) -->
+<!-- 	</insert> -->
+	
+	
+<!-- 	<select id="selectOrderDetailOne" parameterType="int" resultMap="ordersDetailMap"> -->
+<!-- 		SELECT * FROM ORDERS_DETAIL -->
+<!-- 		WHERE ORDERS_NO = #{ordersNo} -->
+<!-- 	</select> -->
+	
+	
+	<update id="updateProductOrder" parameterType="map">
+		UPDATE PRODUCT
+		SET PRODUCT_STOCK = PRODUCT_STOCK - #{salesRate},
+		    PRODUCT_SALES_RATE = PRODUCT_SALES_RATE + #{salesRate}
+		WHERE PRODUCT_NO = #{no}
+	</update>
+	
+	<update id="updateUserPoint" parameterType="map">
+		UPDATE MEMBERS
+		SET MEMBERS_POINT = MEMBERS_POINT - #{totalPrice}
+		WHERE MEMBERS_NO = #{no}
+	</update>
+	
+	
+	<insert id="setOrdersBasketFirst" parameterType="ordersDto">
+		INSERT INTO ORDERS
+		VALUE(ORDERS_NO, ORDERS_DATE, ORDERS_TOTAL_PRICE, MEMBERS_NO,
+				PRODUCT_NO, PRODUCT_COUNT, ORDER_STATE, ORDERS_GROUP)
+		VALUES(SEQ_ORDERS_ORDERS_NO.NEXTVAL, SYSDATE , #{totalPrice}, #{membersNo},
+				 #{productNo}, #{productCount}, #{orderState},SEQ_ORDERS_ORDERS_GROUP.NEXTVAL)
+	</insert>
+	
+	<select id="selectMaxGroupNum" parameterType="int" resultType="int">
+		SELECT MAX(ORDERS_GROUP)
+        FROM ORDERS
+        WHERE MEMBERS_NO = #{membersNo}
+	</select>
+	
+	<insert id="setOrdersBasket" parameterType="ordersDto">
+		INSERT INTO ORDERS
+		VALUE(ORDERS_NO, ORDERS_DATE, ORDERS_TOTAL_PRICE, MEMBERS_NO,
+				PRODUCT_NO, PRODUCT_COUNT, ORDER_STATE, ORDERS_GROUP)
+		VALUES(SEQ_ORDERS_ORDERS_NO.NEXTVAL, SYSDATE , #{totalPrice}, #{membersNo},
+				 #{productNo}, #{productCount}, #{orderState}, #{orderGroup})
+	</insert>
+	
+	
+	<select id="selectByOrdersGroup" parameterType="int" resultType="int">
+		 SELECT * FROM ORDERS
+         WHERE ORDERS_GROUP = #{orderGroup}        
+	</select>
+
+<!-- 	<select id="selectOrderOne" parameterType="map" resultMap="ordersResultMap"> -->
+<!-- 		 SELECT ORD.ORDERS_TOTAL_PRICE, ORD.PRODUCT_COUNT, PR.PRODUCT_NAME, ORD.PRODUCT_NO -->
+<!--          FROM ORDERS ORD JOIN PRODUCT PR -->
+<!--          ON ORD.PRODUCT_NO = PR.PRODUCT_NO -->
+<!--          WHERE ORDERS_BASKET_ONE = #{orderBasketOne} -->
+<!--          AND MEMBERS_NO = #{membersNo} -->
+<!-- 	</select> -->
+
+<select id="selectOrderHistory" parameterType="map" resultType="map">     
+	SELECT *
+	FROM(
+	    SELECT FIN.ORDERS_GROUP, FIN.ORDERS_NO, FIN.TITLE, FIN.ORDERS_DATE, FIN.ORDERS_TOTAL_PRICE
+	    , FIN.COUNT, ROWNUM RNUM
+	    FROM(   
+	          SELECT O.ORDERS_GROUP
+			    , MIN(O.ORDERS_NO) KEEP(DENSE_RANK FIRST ORDER BY O.ORDERS_NO)AS ORDERS_NO
+			    , MIN(P.PRODUCT_NAME) KEEP(DENSE_RANK FIRST ORDER BY O.ORDERS_GROUP) AS TITLE
+			    , COUNT(*) AS COUNT
+			    , MIN(O.ORDERS_DATE) KEEP(DENSE_RANK FIRST ORDER BY O.PRODUCT_NO) AS ORDERS_DATE
+				, SUM(P.PRODUCT_PRICE * O.PRODUCT_COUNT) AS ORDERS_TOTAL_PRICE
+			FROM ORDERS O
+			JOIN PRODUCT P
+			ON O.PRODUCT_NO = P.PRODUCT_NO
+			WHERE O.MEMBERS_NO = #{membersNo}
+			AND O.ORDERS_GROUP IS NOT NULL
+			GROUP BY ORDERS_GROUP
+			ORDER BY ORDERS_GROUP DESC) FIN
+	          WHERE FIN.ORDERS_DATE BETWEEN TO_DATE(#{startDate}) AND TO_DATE(#{endDate}))
+	          WHERE RNUM BETWEEN #{start} AND #{end}     
+</select>
+  
+  
+ <select id="ordersTotalcount" parameterType="map" resultType="int">
+       SELECT COUNT(*) 
+		FROM(   
+			SELECT O.ORDERS_GROUP
+		    , MIN(O.ORDERS_NO) KEEP(DENSE_RANK FIRST ORDER BY O.ORDERS_NO)AS ORDERS_NO
+		    , MIN(P.PRODUCT_NAME) KEEP(DENSE_RANK FIRST ORDER BY O.ORDERS_GROUP) AS TITLE
+		    , COUNT(*) AS COUNT
+		    , MIN(O.ORDERS_DATE) KEEP(DENSE_RANK FIRST ORDER BY O.PRODUCT_NO) AS ORDERS_DATE
+			, SUM(P.PRODUCT_PRICE * O.PRODUCT_COUNT) AS ORDERS_TOTAL_PRICE
+		FROM ORDERS O
+		JOIN PRODUCT P
+		ON O.PRODUCT_NO = P.PRODUCT_NO
+		WHERE O.MEMBERS_NO = #{membersNo}
+		AND O.ORDERS_GROUP IS NOT NULL
+		GROUP BY ORDERS_GROUP
+		ORDER BY ORDERS_GROUP DESC) FIN
+		WHERE FIN.ORDERS_DATE BETWEEN TO_DATE(#{startDate}) AND TO_DATE(#{endDate})
+
+</select>
+
+ <select id="selectOrderListByGroup" parameterType="map" resultType="map">
+ 	SELECT O.ORDERS_NO, O.ORDERS_DATE, O.PRODUCT_COUNT, 
+ 					PR.PRODUCT_NAME, PR.PRODUCT_PRICE
+    FROM ORDERS O JOIN PRODUCT PR
+    ON O.PRODUCT_NO = PR.PRODUCT_NO
+    WHERE ORDERS_GROUP = #{orderGroup}
+
+
+</select>
+	
+	<select id="selectOneName" parameterType="memberDto">
+			SELECT MEMBERS_NO , MEMBERS_ID
+				FROM MEMBERS
+				WHERE MEMBERS_NO = #{no};
+	</select>
+	
+<!-- 	회원 전체 구매 내역 -->
+	
+	<select id="selectOrderAllHistory" parameterType="map" resultType="map">
+		SELECT O.*
+	      FROM(
+	         SELECT ROWNUM AS RNUM, O.*
+	         FROM
+	            (SELECT ORDERS_GROUP
+	                , MIN(P.PRODUCT_NAME) KEEP(DENSE_RANK FIRST ORDER BY O.ORDERS_GROUP) AS TITLE
+	                , COUNT(*) AS COUNT
+	                , SUM(O.PRODUCT_COUNT * P.PRODUCT_PRICE) AS SUM
+	                , MIN(M.MEMBERS_ID) KEEP(DENSE_RANK FIRST ORDER BY O.PRODUCT_NO) AS MEMBERS_ID
+	                , MIN(O.ORDERS_DATE) KEEP(DENSE_RANK FIRST ORDER BY O.PRODUCT_NO) AS ORDERS_DATE
+	            FROM ORDERS O
+	            JOIN PRODUCT P
+	            ON O.PRODUCT_NO = P.PRODUCT_NO
+	            JOIN MEMBERS M
+	            ON M.MEMBERS_NO = O.MEMBERS_NO
+	            <if test="searchOption == 'members_id'">
+          	    	WHERE ${searchOption} LIKE '%'||#{keyword}||'%'
+          		</if>
+	            GROUP BY ORDERS_GROUP
+	            ORDER BY ORDERS_DATE DESC
+	            ) O
+	         ) O
+      WHERE RNUM BETWEEN #{start} AND #{end}
+	</select>
+
+<!-- 	회원 전체 구매내역 나누기 -->
+	
+	<select id="selectOrderHistoryCount" parameterType="map"  resultType="int">
+	    SELECT COUNT(O.ORDERS_GROUP) AS COUNT
+  		FROM( 
+         SELECT ORDERS_GROUP
+          FROM ORDERS O JOIN MEMBERS MEM
+          ON O.MEMBERS_NO = MEM.MEMBERS_NO
+          <if test="searchOption == 'members_id'">
+          	    WHERE ${searchOption} LIKE '%'||#{keyword}||'%'
+          </if>
+          GROUP BY ORDERS_GROUP) O
+	</select>
+	
+
+</mapper>

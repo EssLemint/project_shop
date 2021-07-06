@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.basket">
+
+
+	<resultMap type="BasketDto" id="basketResultMap">
+		<id column="BASKET_ID" property="id" />
+		<result column="BASKET_PRODUCT_COUNT" property="productCount" />
+		<result column="BASKET_TOTAL_PRICE" property="totalPrice" />
+		<result column="PRODUCT_NO" property="productNo"/>
+		<result column="MEMBERS_NO" property="membersNo"/>
+		<result column="PRODUCT_NAME" property="name"/>
+	</resultMap>
+	
+	<resultMap type="MemberDto" id="memberMap">
+		<result column="MEMBERS_NO" property="no"/>
+		<result column="MEMBERS_NAME" property="name"/>
+		<result column="MEMBERS_ADDRESS_MAIN"	property="addressMain" />
+		<result column="MEMBERS_ADDRESS_DETAIL"	property="addressDetail" />
+		<result column="MEMBERS_POINT"	property="point" />
+		<result column="MEMBERS_PHONE"	property="phone" />
+	</resultMap>
+	
+	<resultMap type="ProductDto" id="productMap">
+		<result column="PRODUCT_NO" property="no"/>
+		<result column="PRODUCT_NAME"	property="name" />
+		<result column="PRODUCT_PRICE"	property="price" />
+		<result column="PRODUCT_STOCK"	property="stock" />
+		<result column="PRODUCT_SALES_RATE"	property="salesRate" />
+	</resultMap>
+
+
+
+	<select id="selectBasketList"  parameterType="int" resultMap="basketResultMap">
+		SELECT BS.PRODUCT_NO, BS.BASKET_ID, BS.MEMBERS_NO, 
+			BS.BASKET_TOTAL_PRICE, BS.BASKET_PRODUCT_COUNT, PR.PRODUCT_NAME
+		FROM BASKET BS JOIN PRODUCT PR
+		ON PR.PRODUCT_NO = BS.PRODUCT_NO 
+		WHERE MEMBERS_NO = #{membersNo}
+	</select>
+	
+	<select id="selectBasketListPrice"  parameterType="int" resultType="map">
+		 SELECT BS.PRODUCT_NO, BS.BASKET_ID, BS.MEMBERS_NO, 
+			BS.BASKET_TOTAL_PRICE, BS.BASKET_PRODUCT_COUNT
+			, PR.PRODUCT_NAME, PR.PRODUCT_PRICE AS PRODUCTPRICE
+		FROM BASKET BS JOIN PRODUCT PR
+		ON PR.PRODUCT_NO = BS.PRODUCT_NO 
+		WHERE MEMBERS_NO = #{membersNo}
+	</select>
+
+<!-- 장바구니가 이미 존재 할시  -->
+	<insert id="insertProductBasketExist" parameterType="map">
+		INSERT INTO BASKET
+		VALUE(BASKET_ID, BASKET_PRODUCT_COUNT, BASKET_TOTAL_PRICE,
+				PRODUCT_NO, MEMBERS_NO)
+		VALUES(SEQ_BASKET_BASKET_ID.NEXTVAL, #{productCount}, #{totalPrice}, 
+				#{productNo}, #{membersNo})
+	</insert>
+<!-- 	장바구니가 존재하지 않을시  -->
+	<insert id="insertProductBasketNew" parameterType="map">
+		INSERT INTO BASKET
+		VALUE(BASKET_ID, BASKET_PRODUCT_COUNT, BASKET_TOTAL_PRICE,
+				PRODUCT_NO, MEMBERS_NO)
+		VALUES(SEQ_BASKET_BASKET_ID.NEXTVAL, #{productCount}, #{totalPrice}, 
+				#{productNo}, #{membersNo})
+	</insert>
+	
+<!-- 	최근 장바구니 그룹 확인 -->
+<!-- 	<select id="checkBasketGroup"  parameterType="int" resultType="int"> -->
+<!-- 		SELECT MAX(BASKET_GROUP) -->
+<!-- 		FROM BASKET -->
+<!-- 		WHERE MEMBERS_NO = #{membersNo} -->
+<!-- 	</select> -->
+	
+	
+	
+	<select id="selectMemberOne"  parameterType="int" resultMap="memberMap">
+		SELECT MEMBERS_POINT, MEMBERS_NO, MEMBERS_ADDRESS_MAIN, MEMBERS_ADDRESS_DETAIL, MEMBERS_PHONE
+		FROM MEMBERS 
+		WHERE MEMBERS_NO = #{no}
+	</select>
+	
+	<update id="deleteBasketOneCtr"  parameterType="int">
+		DELETE FROM BASKET
+		WHERE BASKET_ID = #{id}
+	</update>
+	
+	<select id="searchSameProduct"  parameterType="map" resultType="int">
+		SELECT COUNT(PRODUCT_NO)
+		FROM BASKET
+		WHERE MEMBERS_NO = #{membersNo}
+		AND PRODUCT_NO = #{productNo}
+	</select>
+	
+	<update id="updateProductBasket"  parameterType="map">
+		UPDATE BASKET
+		SET BASKET_PRODUCT_COUNT = BASKET_PRODUCT_COUNT + #{productCount},
+		BASKET_TOTAL_PRICE = BASKET_TOTAL_PRICE + #{totalPrice}
+		WHERE MEMBERS_NO = #{membersNo}
+		AND PRODUCT_NO = #{productNo}
+	</update>
+	
+	<select id="searchBasketExist"  parameterType="int" resultType="int">
+		SELECT COUNT(*) 
+        FROM BASKET
+        WHERE MEMBERS_NO = #{MEMBERSNO}
+	</select>
+	
+	<delete id="deleteBasket" parameterType="int">
+		DELETE FROM BASKET
+        WHERE MEMBERS_NO = #{MEMBERSNO}
+	</delete>
+	
+
+</mapper>

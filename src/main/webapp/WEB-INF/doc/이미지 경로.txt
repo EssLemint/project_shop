@@ -1,0 +1,1 @@
+<Context docBase="D:\zordy\img" path="/zordy/img" reloadable="true"/>

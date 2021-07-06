@@ -1,0 +1,66 @@
+@charset "utf-8";
+body{
+	margin: 0 0px;
+}
+#allDiv{
+	margin: 0 0px;
+	width: 1520px;
+	height: 1000px;
+}
+#main{
+	width: 300px;
+	height: 1000px;
+	float: left;
+	border: 1px solid black;
+}
+#mainh2{
+	text-align: center;
+	margin-top: 80px;
+	margin-bottom: 30px;
+	font-size: 50px;
+}
+#mainli {
+	list-style: none;
+	margin-bottom: 10px;
+}
+#maina{
+	font-size: 20px;
+	font-weight: bolder;
+	text-decoration: none;
+	color: black;
+}
+#userIdDiv{
+float: right;
+}
+#imgSlideDiv{
+	float: left;
+	width: 50%;
+	height: 50%;
+	margin-left: 50px;
+	margin-top: 20px;
+}
+#imgSlideLi{
+	border: 1px solid red;
+	list-style: none;
+	text-align: center;
+	width: 1000px;
+	height: 600px;
+}
+#secondImgDiv{
+	float: left;
+	margin-top: 50px;
+	margin-left: 50px;
+ 	width: 1040px;
+}
+#secondImgLi{
+	float: right;
+	list-style: none;
+}
+#secondImg{
+	float: right;
+	width: 250px;
+	height: 250px;
+}
+span{
+	margin-left: 125px;
+}

@@ -1,0 +1,29 @@
+@charset "UTF-8";
+
+	h1{
+	text-align: center;
+	}
+	h2{
+	text-align: center;
+	}
+	div{
+	text-align: center;
+	}
+	li{
+	list-style: none;
+	}
+	#lione{
+	margin-top: 20px;
+	}
+	#email{
+	width : 300px;
+	height : 35px;
+	margin-bottom: 10px;
+	}
+	#phone{
+	width : 300px;
+	height : 35px;
+	}
+	#searchid{
+	margin-right: 80px;
+	}

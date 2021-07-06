@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.requestdetail">
+
+<resultMap type="RequestDetailDto" 			id="requestDetailMap">
+		<id column="REQ_NO" 			property="reqNo"/>
+		<result column="REQ_DETAIL"				property="reqDetail" />
+</resultMap>
+
+
+<select id="selectOneReq" parameterType="int" resultMap="requestDetailMap">
+		 SELECT * FROM REQUEST_DETAIL
+            WHERE REQ_NO = #{reqNo}
+</select>
+
+
+
+
+
+
+
+</mapper>

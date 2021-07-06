@@ -1,0 +1,42 @@
+@charset "UTF-8";
+
+h1 {
+	text-align: center;
+}
+
+div {
+	text-align: center;
+}
+
+#id {
+	width: 300px;
+	height: 35px;
+}
+#pass {
+	width: 300px;
+	height: 35px;
+	margin-top: 10px;
+}
+#loginBtn {
+	width: 300px;
+	height: 40px;
+}
+a{
+	color: #ff3333;
+	font-size: 7px;
+	
+}
+ul {
+	text-align: center;
+}
+
+li {
+	list-style: none;
+	display: inline-block;
+	margin-right: 50px;
+}
+#aTag{
+	font-size : 10px;
+	text-decoration: none;
+	color: black;
+}

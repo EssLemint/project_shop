@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.edu.member">
+
+	<sql id="search">
+		<choose>
+			<when test="searchOption == 'all'">
+				WHERE 	MNAME LIKE '%'||#{keyword}||'%'
+                OR 		EMAIL LIKE '%'||#{keyword}||'%' 
+			</when>
+			<otherwise>
+				WHERE 	${searchOption} LIKE '%'||#{keyword}||'%'
+			</otherwise>
+		</choose>
+	</sql>
+
+	<resultMap type="memberDto" id="memberResultMap">
+		<id 	column="MNO" 				property="no"/>
+		<result column="MNAME" 			property="name"/>
+		<result column="EMAIL" 			property="email"/>
+		<result column="PWD" 			property="password"/>
+		<result column="CRE_DATE" 			property="createDate"
+									javaType="java.util.Date"/>
+		<result column="MOD_DATE" 			property="modifiedDate"
+									javaType="java.util.Date"/>
+	</resultMap>
+
+<!-- 회원목록조회 -->
+	<select id="memberSelectList" parameterType="map" resultMap="memberResultMap">
+		SELECT MNO, MNAME, EMAIL, CRE_DATE
+		FROM (
+		    SELECT ROWNUM RNUM, M.MNO, M.MNAME, M.EMAIL, M.CRE_DATE
+		    FROM (
+		        SELECT MNO, MNAME, EMAIL, CRE_DATE
+		        FROM MEMBERS
+		        <include refid="search"></include>
+		        ORDER BY CRE_DATE DESC) M
+		    ) MEMBERS
+		WHERE RNUM BETWEEN #{start} AND #{end}
+	</select>
+
+<!-- 회원존재확인 -->
+	<select id="memberExist" parameterType="map" resultMap="memberResultMap">
+		SELECT MNO, MNAME, EMAIL
+		FROM MEMBERS
+		WHERE EMAIL = #{email} AND PWD = #{pwd}	
+	</select>
+	
+<!-- 	회원추가 -->
+	<insert id="memberInsertOne" parameterType="com.edu.member.model.MemberDto"
+		useGeneratedKeys="true" keyProperty="no">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			SELECT MEMBERS_MNO_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		
+		INSERT INTO MEMBERS
+		VALUE(MNO, EMAIL, PWD, MNAME, CRE_DATE, MOD_DATE)
+		VALUES(#{no}, #{email}, #{password}
+			, #{name}, SYSDATE, SYSDATE)
+	</insert>
+	
+<!-- 	회원상세조회 -->
+	<select id="memberSelectOne" parameterType="int" resultMap="memberResultMap">
+		SELECT MNO, EMAIL, MNAME, CRE_DATE
+		FROM MEMBERS
+		WHERE MNO = #{no}
+	</select>
+	
+<!-- 회원정보 수정 -->
+	<update id="memberUpdateOne" parameterType="memberDto">
+		UPDATE MEMBERS
+		<set>
+			<if test="email != ''">EMAIL = #{email},</if>
+			<if test="name != ''">MNAME = #{name},</if> 
+			MOD_DATE = SYSDATE
+		</set>
+		WHERE MNO = #{no}
+	</update>
+	
+<!-- 	회원삭제 -->
+	<delete id="memberDeleteOne" parameterType="int">
+		DELETE FROM MEMBERS
+		WHERE MNO = #{value}
+	</delete>
+	
+	<select id="memberSelectTotalCount" 
+		resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM MEMBERS
+		<include refid="search"></include>
+	</select>
+	
+	
+
+<!-- 	<insert id="insertFile" parameterType="map"> -->
+<!-- 		INSERT INTO TB_FILE -->
+<!-- 		VALUE	(IDX, PARENT_SEQ, ORIGINAL_FILE_NAME, -->
+<!-- 		        	STORED_FILE_NAME, FILE_SIZE, CRE_DATE) -->
+<!-- 		VALUES	(TB_FILE_IDX_SEQ.NEXTVAL, #{parentSeq}, #{original_file_name} -->
+<!-- 		    		, #{stored_file_name}, #{file_size}, SYSDATE) -->
+<!-- 	</insert> -->
+	
+	
+<!-- 	<select id="fileSelectList" parameterType="int" -->
+<!-- 		resultType="map"> -->
+<!-- 		SELECT IDX, ORIGINAL_FILE_NAME, STORED_FILE_NAME -->
+<!-- 	    	, ROUND(FILE_SIZE / 1024, 1) AS FILE_SIZE -->
+<!-- 		FROM TB_FILE -->
+<!-- 		WHERE PARENT_SEQ = #{no} -->
+<!-- 	</select> -->
+	
+	
+<!-- 	<delete id="fileDelete" parameterType="int"> -->
+<!-- 		DELETE FROM TB_FILE -->
+<!-- 		WHERE PARENT_SEQ = #{no} -->
+<!-- 	</delete> -->
+	
+	
+	
+<!-- 	<select id="fileSelectStoredFileName" parameterType="int" -->
+<!-- 		resultType="map"> -->
+<!-- 		SELECT IDX, STORED_FILE_NAME -->
+<!-- 		FROM TB_FILE -->
+<!-- 		WHERE PARENT_SEQ = #{no} -->
+<!-- 	</select> -->
+	
+</mapper>
